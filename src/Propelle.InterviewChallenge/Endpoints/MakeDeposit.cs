@@ -44,10 +44,25 @@ namespace Propelle.InterviewChallenge.Endpoints
 
                 await _paymentsContext.SaveChangesAsync(ct);
 
-                await _eventBus.Publish(new DepositMade
+                while (true)
                 {
-                    Id = deposit.Id
-                });
+                    try
+                    {
+                        await _eventBus.Publish(new DepositMade
+                        {
+                            Id = deposit.Id
+                        });
+                        break;
+                    }
+                    catch
+                    {
+                        // Retry until successful
+
+                        // Note: this is a simple solution for the purposes of this interview test, however it's
+                        // unsuitable for a production environment/real world scenario since it blocks until the event
+                        // has been successfully published.
+                    }
+                }
 
                 await SendAsync(new Response { DepositId = deposit.Id }, 201, ct);
             }
